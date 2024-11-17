@@ -1,4 +1,10 @@
-import { IsEmail, IsMobilePhone, IsString, MinLength, ValidateIf } from "class-validator";
+import {
+  IsEmail,
+  IsMobilePhone,
+  IsString,
+  MinLength,
+  ValidateIf,
+} from "class-validator";
 
 export class NewUser {
   @IsString()
@@ -13,6 +19,15 @@ export class NewUser {
     message: 'phone number must contain only numbers',
   })
   phone: string;
+
+  @IsString()
+  @MinLength(6)
+  password: string;
+}
+
+export class UserCredentials {
+  @IsEmail()
+  email: string;
 
   @IsString()
   @MinLength(6)

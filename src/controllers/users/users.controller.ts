@@ -2,7 +2,7 @@ import { Body, JsonController, Post } from "routing-controllers";
 import { UsersService } from "../../services/users/users.service";
 import { AppDataSource } from "../../config/database/data-source";
 import { User } from "../../entities/user.entity";
-import { NewUser } from "./users.type";
+import { NewUser, UserCredentials } from "./users.type";
 
 @JsonController("/users")
 export class UsersController {
@@ -16,5 +16,10 @@ export class UsersController {
   @Post("/register")
   async register(@Body({ validate: true }) newUser: NewUser) {
     return this.usersService.createUser(newUser);
+  }
+
+  @Post("/login")
+  async login(@Body({ validate: true }) credentials: UserCredentials) {
+    return this.usersService.login(credentials);
   }
 }

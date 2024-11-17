@@ -4,3 +4,8 @@ export type NewUser = {
   phone: string;
   password: string;
 };
+
+export type UserCredentials = {
+  email: string;
+  password: string;
+};
