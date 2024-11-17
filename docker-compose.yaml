@@ -14,7 +14,7 @@ services:
     image: postgres:13-alpine
     environment:
       POSTGRES_PASSWORD: root
-      POSTGRES_DB: book_store
+      POSTGRES_DB: kennel
     volumes:
       - .pgdata:/var/lib/postgresql/data
     ports:
