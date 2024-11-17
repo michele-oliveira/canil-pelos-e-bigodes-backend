@@ -1,0 +1,31 @@
+services:
+  app:
+    build: .
+    ports:
+      - 3333:3333
+    volumes:
+      - .:/home/node/app
+    depends_on:
+      - db
+    extra_hosts:
+      - "host.docker.internal:172.17.0.1"
+
+  db:
+    image: postgres:13-alpine
+    environment:
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: book_store
+    volumes:
+      - .pgdata:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+  pgadmin:
+    image: dpage/pgadmin4:7.6
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@user.com
+      - PGADMIN_DEFAULT_PASSWORD=123456
+    ports:
+      - "8000:80"
+    depends_on:
+      - db

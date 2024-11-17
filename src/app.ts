@@ -2,6 +2,7 @@ import path from "path";
 import dotenv from "dotenv";
 import express from "express";
 import { useExpressServer } from "routing-controllers";
+import { AppDataSource } from "./config/database/data-source";
 
 async function bootstrap() {
   const app = express();
@@ -13,6 +14,9 @@ async function bootstrap() {
     },
     controllers: [path.join(__dirname + "/controllers/**/*.controller.ts")],
   });
+
+  await AppDataSource.initialize();
+  console.info("Database connected");
 
   app.listen(3333, () => {
     console.log("Server is running in port 3333");
