@@ -14,9 +14,9 @@ export class NewUser {
   @IsEmail()
   email: string;
 
-  @IsMobilePhone('pt-BR')
+  @IsMobilePhone("pt-BR")
   @ValidateIf((o) => /^\d+$/.test(o.phone), {
-    message: 'phone number must contain only numbers',
+    message: "phone number must contain only numbers",
   })
   phone: string;
 
