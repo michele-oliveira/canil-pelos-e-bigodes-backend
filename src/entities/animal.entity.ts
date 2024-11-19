@@ -9,6 +9,7 @@ import {
 import { User } from "./user.entity";
 import { Vaccine } from "./vaccine.entity";
 import { AnimalType } from "./enums/animalType.enum";
+import { AnimalGender } from "./enums/animalGender.enum";
 
 @Entity()
 export class Animal {
@@ -21,11 +22,11 @@ export class Animal {
   @Column()
   breed: string;
 
-  @Column()
-  age: string;
+  @Column({ type: "integer" })
+  age: number;
 
-  @Column()
-  gender: string;
+  @Column({ type: "enum", enum: AnimalGender })
+  gender: AnimalGender;
 
   @Column({ type: "enum", enum: AnimalType })
   type: AnimalType;
