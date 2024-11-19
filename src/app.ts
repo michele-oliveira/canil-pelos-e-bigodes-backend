@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import express from "express";
 import { useExpressServer } from "routing-controllers";
 import { AppDataSource } from "./config/database/data-source";
+import { authorizationInterceptor } from "./config/database/http/interceptors";
 
 async function bootstrap() {
   const app = express();
@@ -12,6 +13,7 @@ async function bootstrap() {
     cors: {
       origin: "*",
     },
+    authorizationChecker: authorizationInterceptor,
     controllers: [path.join(__dirname + "/controllers/**/*.controller.ts")],
   });
 
