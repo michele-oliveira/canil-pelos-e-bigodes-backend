@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Animal } from "./animal.entity";
 
 @Entity({ name: "users" })
 export class User {
@@ -19,4 +20,10 @@ export class User {
 
   @Column()
   salt: string;
+
+  @OneToMany(() => Animal, (animal) => animal.owner)
+  ownedAnimals: Animal[];
+
+  @OneToMany(() => Animal, (animal) => animal.adoptedBy)
+  adoptedAnimals: Animal[];
 }
