@@ -42,6 +42,12 @@ export class Animal {
   @Column({ type: "text", nullable: true })
   description: string;
 
+  @Column()
+  image_1: string;
+
+  @Column()
+  image_2: string;
+
   @ManyToOne(() => User, (user) => user.ownedAnimals)
   owner: User;
 

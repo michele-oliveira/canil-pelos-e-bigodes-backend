@@ -1,10 +1,24 @@
-import { Body, JsonController, Post } from "routing-controllers";
+import { Request } from "express";
+import {
+  Body,
+  JsonController,
+  Post,
+  Req,
+  UseAfter,
+  UseBefore,
+} from "routing-controllers";
 import { AppDataSource } from "../../config/database/data-source";
 import { User } from "../../entities/user.entity";
 import { Animal } from "../../entities/animal.entity";
 import { Vaccine } from "../../entities/vaccine.entity";
 import { AnimalsService } from "../../services/animals/animals.service";
-import { NewAnimalForAdoption } from "./animals.type";
+import { upload } from "../../config/storage/upload";
+import { FailedUploadsMiddleware } from "../../middlewares/failedUploads.middleware";
+import { NewAnimalForAdoption as NewAnimalForAdoptionBody } from "./animals.type";
+import {
+  AnimalImageFilesDTO,
+  NewAnimalForAdoptionDTO,
+} from "../../interfaces/dto";
 
 @JsonController("/animals")
 export class AnimalsController {
@@ -22,7 +36,26 @@ export class AnimalsController {
   }
 
   @Post("")
-  newAdoption(@Body({ validate: true }) animal: NewAnimalForAdoption) {
-    return this.animalsService.newAdoption(animal);
+  @UseBefore(
+    upload.fields([
+      { name: "image_1", maxCount: 1 },
+      { name: "image_2", maxCount: 1 },
+    ])
+  )
+  @UseAfter(FailedUploadsMiddleware)
+  newAdoption(
+    @Req() req: Request,
+    @Body({ validate: true }) body: NewAnimalForAdoptionBody
+  ) {
+    const files = req.files as unknown as AnimalImageFilesDTO;
+
+    const newAnimalForAdoption: NewAnimalForAdoptionDTO = {
+      ...body,
+      ...files,
+      age: parseInt(body.age),
+      vaccineIds: body.vaccineIds ?? [],
+    };
+
+    return this.animalsService.newAdoption(newAnimalForAdoption);
   }
 }

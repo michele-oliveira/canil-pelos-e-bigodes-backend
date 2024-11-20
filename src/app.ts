@@ -4,6 +4,7 @@ import express from "express";
 import { useExpressServer } from "routing-controllers";
 import { AppDataSource } from "./config/database/data-source";
 import { authorizationInterceptor } from "./config/database/http/interceptors";
+import { createImagesDirectoryIfNotExists } from "./utils/files";
 
 async function bootstrap() {
   const app = express();
@@ -16,6 +17,10 @@ async function bootstrap() {
     authorizationChecker: authorizationInterceptor,
     controllers: [path.join(__dirname + "/controllers/**/*.controller.ts")],
   });
+
+  createImagesDirectoryIfNotExists();
+  app.use(express.static("public"));
+  app.use("/images", express.static("images"));
 
   await AppDataSource.initialize();
   console.info("Database connected");

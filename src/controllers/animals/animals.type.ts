@@ -1,16 +1,16 @@
 import {
   IsArray,
   IsEnum,
-  IsInt,
   IsOptional,
   IsString,
   IsUUID,
   MaxLength,
-  Min,
   MinLength,
+  Validate,
 } from "class-validator";
 import { AnimalType } from "../../entities/enums/animalType.enum";
 import { AnimalGender } from "../../entities/enums/animalGender.enum";
+import { IsPositiveIntegerString } from "../../common/validators/numbers";
 
 export class NewAnimalForAdoption {
   @IsString()
@@ -21,9 +21,10 @@ export class NewAnimalForAdoption {
   @MinLength(5)
   breed: string;
 
-  @IsInt()
-  @Min(1)
-  age: number;
+  @Validate(IsPositiveIntegerString, {
+    message: "age must be a positive whole number",
+  })
+  age: string;
 
   @IsEnum(AnimalGender)
   gender: AnimalGender;
@@ -33,7 +34,8 @@ export class NewAnimalForAdoption {
 
   @IsArray()
   @IsString({ each: true })
-  vaccineIds: string[];
+  @IsOptional()
+  vaccineIds?: string[];
 
   @IsString()
   @MinLength(24)
