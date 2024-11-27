@@ -1,7 +1,7 @@
 import { AnimalGender } from "../entities/enums/animalGender.enum";
 import { AnimalType } from "../entities/enums/animalType.enum";
 
-export interface NewAnimalForAdoptionDTO {
+export interface NewAnimalDTO {
   name: string;
   breed: string;
   age: number;
@@ -13,8 +13,7 @@ export interface NewAnimalForAdoptionDTO {
   image_2: Express.Multer.File[];
 }
 
-export interface UpdateExistingAnimalForAdoptionDTO
-  extends NewAnimalForAdoptionDTO {
+export interface UpdateAnimalDTO extends NewAnimalDTO {
   id: string;
 }
 

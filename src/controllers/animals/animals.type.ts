@@ -12,7 +12,7 @@ import { AnimalType } from "../../entities/enums/animalType.enum";
 import { AnimalGender } from "../../entities/enums/animalGender.enum";
 import { IsPositiveIntegerString } from "../../common/validators/numbers";
 
-export class NewAnimalForAdoption {
+export class NewAnimal {
   @IsString()
   @MinLength(2)
   name: string;
@@ -43,7 +43,7 @@ export class NewAnimalForAdoption {
   description: string;
 }
 
-export class UpdateExistingAnimalForAdoption extends NewAnimalForAdoption {
+export class UpdateAnimal extends NewAnimal {
   @IsUUID()
   id: string;
 }

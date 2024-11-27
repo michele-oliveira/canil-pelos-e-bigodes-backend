@@ -18,13 +18,13 @@ import { AnimalsService } from "../../services/animals/animals.service";
 import { upload } from "../../config/storage/upload";
 import { FailedUploadsMiddleware } from "../../middlewares/failedUploads.middleware";
 import {
-  NewAnimalForAdoption as NewAnimalForAdoptionBody,
-  UpdateExistingAnimalForAdoption as UpdateExistingAnimalForAdoptionBody,
+  NewAnimal as NewAnimalBody,
+  UpdateAnimal as UpdateAnimalBody,
 } from "./animals.type";
 import {
   AnimalImageFilesDTO,
-  NewAnimalForAdoptionDTO,
-  UpdateExistingAnimalForAdoptionDTO,
+  NewAnimalDTO,
+  UpdateAnimalDTO,
 } from "../../interfaces/dto";
 
 @JsonController("/animals")
@@ -54,18 +54,18 @@ export class AnimalsController {
   newAdoption(
     @CurrentUser() user: User,
     @Req() req: Request,
-    @Body({ validate: true }) body: NewAnimalForAdoptionBody
+    @Body({ validate: true }) body: NewAnimalBody
   ) {
     const files = req.files as unknown as AnimalImageFilesDTO;
 
-    const newAnimalForAdoption: NewAnimalForAdoptionDTO = {
+    const newAnimalForAdoption: NewAnimalDTO = {
       ...body,
       ...files,
       age: parseInt(body.age),
       vaccineIds: body.vaccineIds ?? [],
     };
 
-    return this.animalsService.newAdoption(user.id, newAnimalForAdoption);
+    return this.animalsService.newAnimal(user.id, newAnimalForAdoption);
   }
 
   @Put("")
@@ -80,20 +80,17 @@ export class AnimalsController {
   updateAdoption(
     @CurrentUser() user: User,
     @Req() req: Request,
-    @Body({ validate: true }) body: UpdateExistingAnimalForAdoptionBody
+    @Body({ validate: true }) body: UpdateAnimalBody
   ) {
     const files = req.files as unknown as AnimalImageFilesDTO;
 
-    const existingAnimalForAdoption: UpdateExistingAnimalForAdoptionDTO = {
+    const existingAnimalForAdoption: UpdateAnimalDTO = {
       ...body,
       ...files,
       age: parseInt(body.age),
       vaccineIds: body.vaccineIds ?? [],
     };
 
-    return this.animalsService.updateAdoption(
-      user.id,
-      existingAnimalForAdoption
-    );
+    return this.animalsService.updateAnimal(user.id, existingAnimalForAdoption);
   }
 }

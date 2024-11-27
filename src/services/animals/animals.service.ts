@@ -11,8 +11,8 @@ import { Vaccine } from "../../entities/vaccine.entity";
 import { compareFiles, deleteFile, IMAGES_PATH } from "../../utils/files";
 import {
   AnimalImageFilesDTO,
-  NewAnimalForAdoptionDTO,
-  UpdateExistingAnimalForAdoptionDTO,
+  NewAnimalDTO,
+  UpdateAnimalDTO,
 } from "../../interfaces/dto";
 import { AnimalImageNames } from "./animals.type";
 
@@ -31,12 +31,9 @@ export class AnimalsService {
     this.vaccinesRepository = vaccinesRepository;
   }
 
-  async newAdoption(userId: string, animal: NewAnimalForAdoptionDTO) {
+  async newAnimal(userId: string, animal: NewAnimalDTO) {
     try {
-      const newAnimal = await this.validateAndFillAdoptionDetails(
-        userId,
-        animal
-      );
+      const newAnimal = await this.validateAndFillAnimalDetails(userId, animal);
 
       await this.animalsRepository.insert(newAnimal);
 
@@ -51,12 +48,9 @@ export class AnimalsService {
     }
   }
 
-  async updateAdoption(
-    userId: string,
-    animal: UpdateExistingAnimalForAdoptionDTO
-  ) {
+  async updateAnimal(userId: string, animal: UpdateAnimalDTO) {
     try {
-      const existingAnimal = await this.validateAndFillAdoptionDetails(
+      const existingAnimal = await this.validateAndFillAnimalDetails(
         userId,
         animal
       );
@@ -74,9 +68,9 @@ export class AnimalsService {
     }
   }
 
-  private async validateAndFillAdoptionDetails(
+  private async validateAndFillAnimalDetails(
     userId: string,
-    animalDetails: UpdateExistingAnimalForAdoptionDTO | NewAnimalForAdoptionDTO
+    animalDetails: NewAnimalDTO | UpdateAnimalDTO
   ) {
     let animal: Animal;
     if ("id" in animalDetails) {
