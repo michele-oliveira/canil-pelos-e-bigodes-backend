@@ -1,8 +1,8 @@
 import { JsonWebTokenError, verify } from "jsonwebtoken";
 import { Action, UnauthorizedError } from "routing-controllers";
-import { AppDataSource } from "../data-source";
-import { User } from "../../../entities/user.entity";
-import { decodeJwt, getJwtFromRequestHeaders } from "../../../utils/jwt";
+import { AppDataSource } from "../database/data-source";
+import { User } from "../../entities/user.entity";
+import { decodeJwt, getJwtFromRequestHeaders } from "../../utils/jwt";
 
 export const authorizationInterceptor = async (
   action: Action,

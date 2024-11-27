@@ -3,7 +3,10 @@ import dotenv from "dotenv";
 import express from "express";
 import { useExpressServer } from "routing-controllers";
 import { AppDataSource } from "./config/database/data-source";
-import { authorizationInterceptor, currentUserInterceptor } from "./config/database/http/interceptors";
+import {
+  authorizationInterceptor,
+  currentUserInterceptor,
+} from "./config/http/interceptors";
 import { createImagesDirectoryIfNotExists } from "./utils/files";
 
 async function bootstrap() {
