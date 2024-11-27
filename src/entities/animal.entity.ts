@@ -11,7 +11,7 @@ import { Vaccine } from "./vaccine.entity";
 import { AnimalType } from "./enums/animalType.enum";
 import { AnimalGender } from "./enums/animalGender.enum";
 
-@Entity()
+@Entity("animals")
 export class Animal {
   @PrimaryGeneratedColumn("uuid")
   id: string;

@@ -9,7 +9,7 @@ import { Animal } from "./animal.entity";
 import { User } from "./user.entity";
 import { AdoptionRequestStatus } from "./enums/adoptionRequestStatus.enum";
 
-@Entity()
+@Entity("adoption_requests")
 export class AdoptionRequest {
   @PrimaryGeneratedColumn("uuid")
   id: string;

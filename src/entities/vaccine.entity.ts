@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 import { AnimalType } from "./enums/animalType.enum";
 
-@Entity()
+@Entity("vaccines")
 export class Vaccine {
   @PrimaryGeneratedColumn("uuid")
   id: string;
