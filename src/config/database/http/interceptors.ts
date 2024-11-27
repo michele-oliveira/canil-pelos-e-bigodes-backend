@@ -34,3 +34,15 @@ export const authorizationInterceptor = async (
     throw new UnauthorizedError();
   }
 };
+
+export const currentUserInterceptor = async (action: Action) => {
+  try {
+    const token = getJwtFromRequestHeaders(action.request.headers);
+    const decodedUserToken = decodeJwt(token);
+    return await AppDataSource.getRepository(User).findOneByOrFail({
+      id: decodedUserToken.id,
+    });
+  } catch (error) {
+    throw new UnauthorizedError();
+  }
+};
