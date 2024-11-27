@@ -1,4 +1,5 @@
-import { existsSync, mkdirSync, unlink } from "fs";
+import { createHash } from "crypto";
+import { createReadStream, existsSync, mkdirSync, unlink } from "fs";
 import path from "path";
 
 export const IMAGES_PATH = path.resolve(
@@ -29,4 +30,21 @@ export const deleteFile = (filePath: string) => {
       }
     });
   }
+};
+
+export const generateFileHash = (filePath: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const hash = createHash("sha256");
+    const stream = createReadStream(filePath);
+
+    stream.on("data", (data) => hash.update(data));
+    stream.on("end", () => resolve(hash.digest("hex")));
+    stream.on("error", (err) => reject(err));
+  });
+};
+
+export const compareFiles = async (filePath1: string, filePath2: string) => {
+  const hash1 = await generateFileHash(filePath1);
+  const hash2 = await generateFileHash(filePath2);
+  return hash1 === hash2;
 };
