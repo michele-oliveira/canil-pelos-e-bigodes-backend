@@ -9,10 +9,13 @@ export interface NewAnimalForAdoptionDTO {
   type: AnimalType;
   vaccineIds: string[];
   description: string;
-  ownerId: string;
-  adopterId?: string;
   image_1: Express.Multer.File[];
   image_2: Express.Multer.File[];
+}
+
+export interface UpdateExistingAnimalForAdoptionDTO
+  extends NewAnimalForAdoptionDTO {
+  id: string;
 }
 
 export type AnimalImageFilesDTO = {

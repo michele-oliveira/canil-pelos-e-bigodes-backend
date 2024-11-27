@@ -1,8 +1,11 @@
 import { Request } from "express";
 import {
+  Authorized,
   Body,
+  CurrentUser,
   JsonController,
   Post,
+  Put,
   Req,
   UseAfter,
   UseBefore,
@@ -14,10 +17,14 @@ import { Vaccine } from "../../entities/vaccine.entity";
 import { AnimalsService } from "../../services/animals/animals.service";
 import { upload } from "../../config/storage/upload";
 import { FailedUploadsMiddleware } from "../../middlewares/failedUploads.middleware";
-import { NewAnimalForAdoption as NewAnimalForAdoptionBody } from "./animals.type";
+import {
+  NewAnimalForAdoption as NewAnimalForAdoptionBody,
+  UpdateExistingAnimalForAdoption as UpdateExistingAnimalForAdoptionBody,
+} from "./animals.type";
 import {
   AnimalImageFilesDTO,
   NewAnimalForAdoptionDTO,
+  UpdateExistingAnimalForAdoptionDTO,
 } from "../../interfaces/dto";
 
 @JsonController("/animals")
@@ -36,6 +43,7 @@ export class AnimalsController {
   }
 
   @Post("")
+  @Authorized()
   @UseBefore(
     upload.fields([
       { name: "image_1", maxCount: 1 },
@@ -44,6 +52,7 @@ export class AnimalsController {
   )
   @UseAfter(FailedUploadsMiddleware)
   newAdoption(
+    @CurrentUser() user: User,
     @Req() req: Request,
     @Body({ validate: true }) body: NewAnimalForAdoptionBody
   ) {
@@ -56,6 +65,35 @@ export class AnimalsController {
       vaccineIds: body.vaccineIds ?? [],
     };
 
-    return this.animalsService.newAdoption(newAnimalForAdoption);
+    return this.animalsService.newAdoption(user.id, newAnimalForAdoption);
+  }
+
+  @Put("")
+  @Authorized()
+  @UseBefore(
+    upload.fields([
+      { name: "image_1", maxCount: 1 },
+      { name: "image_2", maxCount: 1 },
+    ])
+  )
+  @UseAfter(FailedUploadsMiddleware)
+  updateAdoption(
+    @CurrentUser() user: User,
+    @Req() req: Request,
+    @Body({ validate: true }) body: UpdateExistingAnimalForAdoptionBody
+  ) {
+    const files = req.files as unknown as AnimalImageFilesDTO;
+
+    const existingAnimalForAdoption: UpdateExistingAnimalForAdoptionDTO = {
+      ...body,
+      ...files,
+      age: parseInt(body.age),
+      vaccineIds: body.vaccineIds ?? [],
+    };
+
+    return this.animalsService.updateAdoption(
+      user.id,
+      existingAnimalForAdoption
+    );
   }
 }

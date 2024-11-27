@@ -41,11 +41,9 @@ export class NewAnimalForAdoption {
   @MinLength(24)
   @MaxLength(3584)
   description: string;
+}
 
+export class UpdateExistingAnimalForAdoption extends NewAnimalForAdoption {
   @IsUUID()
-  ownerId: string;
-
-  @IsOptional()
-  @IsUUID()
-  adopterId?: string;
+  id: string;
 }

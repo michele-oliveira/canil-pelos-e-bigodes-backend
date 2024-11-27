@@ -1,14 +1,20 @@
 import path from "path";
 import { In, Repository } from "typeorm";
-import { BadRequestError, NotFoundError } from "routing-controllers";
+import {
+  BadRequestError,
+  NotFoundError,
+  UnauthorizedError,
+} from "routing-controllers";
 import { User } from "../../entities/user.entity";
 import { Animal } from "../../entities/animal.entity";
 import { Vaccine } from "../../entities/vaccine.entity";
-import { deleteFile, IMAGES_PATH } from "../../utils/files";
+import { compareFiles, deleteFile, IMAGES_PATH } from "../../utils/files";
 import {
   AnimalImageFilesDTO,
   NewAnimalForAdoptionDTO,
+  UpdateExistingAnimalForAdoptionDTO,
 } from "../../interfaces/dto";
+import { AnimalImageNames } from "./animals.type";
 
 export class AnimalsService {
   private readonly usersRepository: Repository<User>;
@@ -25,54 +31,12 @@ export class AnimalsService {
     this.vaccinesRepository = vaccinesRepository;
   }
 
-  async newAdoption(animal: NewAnimalForAdoptionDTO) {
+  async newAdoption(userId: string, animal: NewAnimalForAdoptionDTO) {
     try {
-      const { image_1: image1, image_2: image2 } = animal;
-      if (!image1?.[0] || !image2?.[0]) {
-        throw new BadRequestError("'image_1' and 'image_2' are required");
-      }
-
-      const owner = await this.usersRepository.findOneBy({
-        id: animal.ownerId,
-      });
-      if (!owner) {
-        throw new NotFoundError("Owner does not exist");
-      }
-
-      const vaccines = await this.vaccinesRepository.findBy({
-        id: In(animal.vaccineIds),
-      });
-      const fetchedVacineIds = vaccines.map((vaccine) => vaccine.id);
-      const invalidVaccineIds = animal.vaccineIds.filter(
-        (id) => !fetchedVacineIds.includes(id)
+      const newAnimal = await this.validateAndFillAdoptionDetails(
+        userId,
+        animal
       );
-      if (invalidVaccineIds.length > 0) {
-        throw new NotFoundError(
-          `One or more vaccines do not exist: ${invalidVaccineIds.join(", ")}`
-        );
-      }
-
-      const incompatibleVaccines = vaccines.filter(
-        (vaccine) => vaccine.type !== animal.type
-      );
-      if (incompatibleVaccines.length > 0) {
-        const incompatibleVaccineIds = incompatibleVaccines.map(
-          (vaccine) => vaccine.id
-        );
-        throw new BadRequestError(
-          `One or more vaccines are incompatible with the provided animal type: ${incompatibleVaccineIds.join(
-            ", "
-          )}`
-        );
-      }
-
-      const newAnimal = this.animalsRepository.create({
-        ...animal,
-        owner,
-        vaccines,
-        image_1: image1[0].filename,
-        image_2: image2[0].filename,
-      });
 
       await this.animalsRepository.insert(newAnimal);
 
@@ -87,6 +51,114 @@ export class AnimalsService {
     }
   }
 
+  async updateAdoption(
+    userId: string,
+    animal: UpdateExistingAnimalForAdoptionDTO
+  ) {
+    try {
+      const existingAnimal = await this.validateAndFillAdoptionDetails(
+        userId,
+        animal
+      );
+
+      await this.animalsRepository.save(existingAnimal);
+
+      return existingAnimal;
+    } catch (error) {
+      this.deleteImages({
+        image_1: animal.image_1,
+        image_2: animal.image_2,
+      });
+
+      throw error;
+    }
+  }
+
+  private async validateAndFillAdoptionDetails(
+    userId: string,
+    animalDetails: UpdateExistingAnimalForAdoptionDTO | NewAnimalForAdoptionDTO
+  ) {
+    let animal: Animal;
+    if ("id" in animalDetails) {
+      // Updating Animal entity
+      const existingAnimal = await this.animalsRepository.findOne({
+        where: {
+          id: animalDetails.id,
+        },
+        relations: ["owner"],
+      });
+      if (!existingAnimal) {
+        throw new NotFoundError("Animal not found");
+      }
+
+      if (userId !== existingAnimal.owner.id) {
+        throw new UnauthorizedError("You cannot change this resource");
+      }
+
+      const animalImageNames = await this.updateImages(existingAnimal, {
+        image_1: animalDetails.image_1,
+        image_2: animalDetails.image_2,
+      });
+
+      animal = {
+        ...existingAnimal,
+        ...animalDetails,
+        image_1: animalImageNames.image_1,
+        image_2: animalImageNames.image_2,
+      };
+    } else {
+      // Creating new Animal
+      const { image_1: image1, image_2: image2 } = animalDetails;
+      if (!image1?.[0] || !image2?.[0]) {
+        throw new BadRequestError("'image_1' and 'image_2' are required");
+      }
+
+      const owner = await this.usersRepository.findOneBy({
+        id: userId,
+      });
+      if (!owner) {
+        throw new NotFoundError("Owner not found");
+      }
+
+      animal = this.animalsRepository.create({
+        ...animalDetails,
+        owner,
+        image_1: animalDetails.image_1[0].filename,
+        image_2: animalDetails.image_2[0].filename,
+      });
+    }
+
+    const vaccines = await this.vaccinesRepository.findBy({
+      id: In(animalDetails.vaccineIds),
+    });
+    const fetchedVacineIds = vaccines.map((vaccine) => vaccine.id);
+    const invalidVaccineIds = animalDetails.vaccineIds.filter(
+      (id) => !fetchedVacineIds.includes(id)
+    );
+    if (invalidVaccineIds.length > 0) {
+      throw new NotFoundError(
+        `One or more vaccines do not exist: ${invalidVaccineIds.join(", ")}`
+      );
+    }
+
+    const incompatibleVaccines = vaccines.filter(
+      (vaccine) => vaccine.type !== animal.type
+    );
+    if (incompatibleVaccines.length > 0) {
+      const incompatibleVaccineIds = incompatibleVaccines.map(
+        (vaccine) => vaccine.id
+      );
+      throw new BadRequestError(
+        `One or more vaccines are incompatible with the provided animal type: ${incompatibleVaccineIds.join(
+          ", "
+        )}`
+      );
+    }
+
+    animal.vaccines = vaccines;
+    return animal;
+  }
+
   private deleteImages(images: AnimalImageFilesDTO) {
     try {
       Object.values(images).forEach((image) => {
@@ -97,5 +169,35 @@ export class AnimalsService {
     } catch (error) {
       console.error("Error during file deletion", error);
     }
+  }
+
+  private async updateImages(
+    existingAnimal: Animal,
+    newFiles: AnimalImageFilesDTO
+  ) {
+    let animalImageNames: AnimalImageNames = {
+      image_1: existingAnimal.image_1,
+      image_2: existingAnimal.image_2,
+    };
+
+    for (const [key, files] of Object.entries(newFiles)) {
+      const newFile = files?.[0];
+
+      if (newFile) {
+        const oldFileName = existingAnimal[key as keyof AnimalImageFilesDTO];
+        const isFileIdentical = await compareFiles(
+          path.join(IMAGES_PATH, oldFileName),
+          newFile.path
+        );
+        if (isFileIdentical) {
+          deleteFile(newFile.path);
+          animalImageNames[key as keyof AnimalImageFilesDTO] = oldFileName;
+        } else {
+          deleteFile(path.join(IMAGES_PATH, oldFileName));
+          animalImageNames[key as keyof AnimalImageFilesDTO] = newFile.filename;
+        }
+      }
+    }
+    return animalImageNames;
   }
 }
