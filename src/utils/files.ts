@@ -1,5 +1,5 @@
 import { createHash } from "crypto";
-import { createReadStream, existsSync, mkdirSync, unlink } from "fs";
+import { createReadStream, existsSync, mkdirSync, readdirSync, unlink, unlinkSync } from "fs";
 import path from "path";
 
 export const IMAGES_PATH = path.resolve(
@@ -21,6 +21,15 @@ export const createImagesDirectoryIfNotExists = () => {
     console.info("Images directory already exists, skipping its creation");
   }
 };
+
+export const getAllStoredImages = () => readdirSync(IMAGES_PATH);
+
+export const deleteMultipleImages = (imageNames: string[]) => {
+  imageNames.forEach((imageName) => {
+    const imagePath = path.join(IMAGES_PATH, imageName);
+    unlinkSync(imagePath);
+  })
+}
 
 export const deleteFile = (filePath: string) => {
   if (filePath && existsSync(filePath)) {
