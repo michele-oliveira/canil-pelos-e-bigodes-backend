@@ -3,9 +3,11 @@ import {
   Authorized,
   Body,
   CurrentUser,
+  Get,
   JsonController,
   Post,
   Put,
+  QueryParams,
   Req,
   UseAfter,
   UseBefore,
@@ -18,6 +20,7 @@ import { AnimalsService } from "../../services/animals/animals.service";
 import { upload } from "../../config/storage/upload";
 import { FailedUploadsMiddleware } from "../../middlewares/failedUploads.middleware";
 import {
+  ListAnimalsParams,
   NewAnimal as NewAnimalBody,
   UpdateAnimal as UpdateAnimalBody,
 } from "./animals.type";
@@ -40,6 +43,13 @@ export class AnimalsController {
       animalsRepository,
       vaccinesRepository
     );
+  }
+
+  @Get("")
+  list(@QueryParams() params: ListAnimalsParams) {
+    const { page, limit, animalType } = params;
+
+    return this.animalsService.list(page, limit, animalType);
   }
 
   @Post("")

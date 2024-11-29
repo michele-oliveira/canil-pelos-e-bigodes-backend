@@ -15,6 +15,7 @@ import {
   UpdateAnimalDTO,
 } from "../../interfaces/dto";
 import { AnimalImageNames } from "./animals.type";
+import { AnimalType } from "../../entities/enums/animalType.enum";
 
 export class AnimalsService {
   private readonly usersRepository: Repository<User>;
@@ -29,6 +30,34 @@ export class AnimalsService {
     this.usersRepository = usersRepository;
     this.animalsRepository = animalsRepository;
     this.vaccinesRepository = vaccinesRepository;
+  }
+
+  async list(page: number, limit: number, animalType?: AnimalType) {
+    if (limit <= 0 || page <= 0) {
+      throw new BadRequestError("Invalid pagination params");
+    }
+
+    if (animalType && !Object.values(AnimalType).includes(animalType)) {
+      throw new BadRequestError("Invalid animal type provided");
+    }
+
+    const skip = (page - 1) * limit;
+
+    const [animals, total] = await this.animalsRepository.findAndCount({
+      where: animalType
+        ? {
+            type: animalType,
+          }
+        : undefined,
+      skip,
+      take: limit,
+    });
+
+    return {
+      animals,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async newAnimal(userId: string, animal: NewAnimalDTO) {
