@@ -63,7 +63,7 @@ export class AnimalsController {
     ])
   )
   @UseAfter(FailedUploadsMiddleware)
-  newAdoption(
+  newAnimal(
     @CurrentUser() user: User,
     @Req() req: Request,
     @Body({ validate: true }) body: NewAnimalBody
@@ -89,7 +89,7 @@ export class AnimalsController {
     ])
   )
   @UseAfter(FailedUploadsMiddleware)
-  updateAdoption(
+  updateAnimal(
     @CurrentUser() user: User,
     @Req() req: Request,
     @Body({ validate: true }) body: UpdateAnimalBody
@@ -110,7 +110,7 @@ export class AnimalsController {
   @Authorized()
   deleteAnimal(
     @CurrentUser() user: User,
-    @Param('animal_id') animalId: string,
+    @Param("animal_id") animalId: string
   ) {
     return this.animalsService.deleteAnimal(user.id, animalId);
   }
