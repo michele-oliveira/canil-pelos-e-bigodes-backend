@@ -3,8 +3,10 @@ import {
   Authorized,
   Body,
   CurrentUser,
+  Delete,
   Get,
   JsonController,
+  Param,
   Post,
   Put,
   QueryParams,
@@ -102,5 +104,14 @@ export class AnimalsController {
     };
 
     return this.animalsService.updateAnimal(user.id, existingAnimalForAdoption);
+  }
+
+  @Delete("/:animal_id")
+  @Authorized()
+  deleteAnimal(
+    @CurrentUser() user: User,
+    @Param('animal_id') animalId: string,
+  ) {
+    return this.animalsService.deleteAnimal(user.id, animalId);
   }
 }

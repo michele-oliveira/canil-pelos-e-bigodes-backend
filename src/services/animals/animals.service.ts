@@ -9,6 +9,7 @@ import { User } from "../../entities/user.entity";
 import { Animal } from "../../entities/animal.entity";
 import { Vaccine } from "../../entities/vaccine.entity";
 import { compareFiles, deleteFile, IMAGES_PATH } from "../../utils/files";
+import ConflictError from "../../errors/ConflictError.error";
 import {
   AnimalImageFilesDTO,
   NewAnimalDTO,
@@ -95,6 +96,33 @@ export class AnimalsService {
 
       throw error;
     }
+  }
+
+  async deleteAnimal(userId: string, animalId: string) {
+    const animal = await this.animalsRepository.findOne({
+      where: { id: animalId },
+      relations: ["owner"],
+    });
+    if (!animal) {
+      throw new NotFoundError("Animal not found");
+    }
+
+    if (userId !== animal.owner.id) {
+      throw new UnauthorizedError("You cannot perform this action");
+    }
+
+    if (animal.adoptedBy) {
+      throw new ConflictError(
+        "You cannot delete an animal that has already been adopted"
+      );
+    }
+
+    [animal.image_1, animal.image_2].forEach((fileName) =>
+      deleteFile(path.join(IMAGES_PATH, fileName))
+    );
+    await this.animalsRepository.remove(animal);
+
+    return null;
   }
 
   private async validateAndFillAnimalDetails(
