@@ -1,5 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Animal } from "./animal.entity";
+import { Exclude } from "class-transformer";
 
 @Entity({ name: "users" })
 export class User {
@@ -16,9 +17,11 @@ export class User {
   phone: string;
 
   @Column()
+  @Exclude()
   password: string;
 
   @Column()
+  @Exclude()
   salt: string;
 
   @OneToMany(() => Animal, (animal) => animal.owner)
