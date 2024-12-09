@@ -20,9 +20,6 @@ export class AdoptionRequest {
   @ManyToOne(() => User)
   intender: User;
 
-  @ManyToOne(() => User)
-  owner: User;
-
   @Column({
     type: "enum",
     enum: AdoptionRequestStatus,
