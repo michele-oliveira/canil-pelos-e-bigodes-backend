@@ -4,7 +4,8 @@ import { Animal } from "../../entities/animal.entity";
 import { AdoptionRequest } from "../../entities/adoptionRequest.entity";
 // import { NewAdoptionRequestDTO } from "../../interfaces/dto";
 import ConflictError from "../../errors/ConflictError.error";
-import { NotFoundError } from "routing-controllers";
+import { NotFoundError, UnauthorizedError } from "routing-controllers";
+import { AdoptionRequestStatus } from "../../entities/enums/adoptionRequestStatus.enum";
 
 export class AdoptionsService {
   private readonly adoptionsRepository: Repository<AdoptionRequest>;
@@ -35,7 +36,7 @@ export class AdoptionsService {
     }
 
     const intender = await this.usersRepository.findOneBy({
-      id: intenderId
+      id: intenderId,
     });
     if (!intender) {
       throw new NotFoundError("Intender not found");
@@ -49,5 +50,27 @@ export class AdoptionsService {
     await this.adoptionsRepository.insert(adoptionRequest);
 
     return adoptionRequest;
+  }
+
+  async deleteRequest(userId: string, requestId: string) {
+    const request = await this.adoptionsRepository.findOne({
+      where: { id: requestId },
+      relations: ["animal", "animal.owner"],
+    });
+    if (!request) {
+      throw new NotFoundError("Adoption request not found");
+    }
+
+    if (request.animal.owner.id !== userId) {
+      throw new UnauthorizedError("You cannot delete this resource");
+    }
+
+    if (request.status !== AdoptionRequestStatus.PENDING) {
+      throw new ConflictError(`You cannot delete this request that is '${request.status}'`)
+    }
+
+    await this.adoptionsRepository.remove(request);
+
+    return null;
   }
 }
