@@ -1,6 +1,13 @@
 import { AnimalGender } from "../entities/enums/animalGender.enum";
 import { AnimalType } from "../entities/enums/animalType.enum";
 
+export interface NewUserDTO {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+}
+
 export interface NewAnimalDTO {
   name: string;
   breed: string;

@@ -4,7 +4,8 @@ import { User } from "../../entities/user.entity";
 import { genSalt, hash } from "bcrypt";
 import { UnauthorizedError } from "routing-controllers";
 import TokenizedUser from "../../interfaces/tokenizedUser";
-import { NewUser, UserCredentials } from "./users.type";
+import { NewUserDTO } from "../../interfaces/dto";
+import { UserCredentials } from "./users.type";
 
 export class UsersService {
   private readonly usersRepository: Repository<User>;
@@ -13,7 +14,7 @@ export class UsersService {
     this.usersRepository = usersRepository;
   }
 
-  async createUser(user: NewUser) {
+  async createUser(user: NewUserDTO) {
     const newUser = this.usersRepository.create(user);
     newUser.salt = await genSalt();
     newUser.password = await hash(user.password, newUser.salt);

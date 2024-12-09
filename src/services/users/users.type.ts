@@ -1,11 +1,4 @@
-export type NewUser = {
-  name: string;
-  email: string;
-  phone: string;
-  password: string;
-};
-
-export type UserCredentials = {
+export interface UserCredentials {
   email: string;
   password: string;
-};
+}
