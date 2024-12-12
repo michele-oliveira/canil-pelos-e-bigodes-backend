@@ -1,5 +1,6 @@
 import {
   Authorized,
+  Body,
   CurrentUser,
   Delete,
   JsonController,
@@ -12,6 +13,7 @@ import { AppDataSource } from "../../config/database/data-source";
 import { AdoptionRequest } from "../../entities/adoptionRequest.entity";
 import { Animal } from "../../entities/animal.entity";
 import { User } from "../../entities/user.entity";
+import { NewAdoptionRequest as NewAdoptionRequestBody } from "./adoptions.type";
 
 @JsonController("/adoptions")
 export class AdoptionsController {
@@ -29,9 +31,12 @@ export class AdoptionsController {
     );
   }
 
-  @Post("/new-request/:animal_id")
-  newRequest(@CurrentUser() user: User, @Param("animal_id") animalId: string) {
-    return this.adoptionsService.newRequest(animalId, user.id);
+  @Post("/")
+  newRequest(
+    @CurrentUser() user: User,
+    @Body({ validate: true }) body: NewAdoptionRequestBody
+  ) {
+    return this.adoptionsService.newRequest(body.animal_id, user.id);
   }
 
   @Delete("/:request_id")
