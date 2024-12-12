@@ -34,7 +34,7 @@ export class AdoptionsController {
     return this.adoptionsService.newRequest(animalId, user.id);
   }
 
-  @Delete("/delete-request/:request_id")
+  @Delete("/:request_id")
   @Authorized()
   deleteRequest(
     @CurrentUser() user: User,
