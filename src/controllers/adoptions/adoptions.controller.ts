@@ -43,6 +43,15 @@ export class AdoptionsController {
     return this.adoptionsService.deleteRequest(user.id, requestId);
   }
 
+  @Patch("/:request_id/reject-request")
+  @Authorized()
+  rejectRequest(
+    @CurrentUser() user: User,
+    @Param("request_id") requestId: string
+  ) {
+    return this.adoptionsService.rejectRequest(user.id, requestId);
+  }
+
   @Patch("/:request_id/accept-request")
   @Authorized()
   acceptRequest(

@@ -77,6 +77,31 @@ export class AdoptionsService {
     return null;
   }
 
+  async rejectRequest(userId: string, requestId: string) {
+    const request = await this.adoptionsRepository.findOne({
+      where: { id: requestId },
+      relations: ["animal", "animal.owner"],
+    });
+    if (!request) {
+      throw new NotFoundError("Adoption request not found");
+    }
+
+    if (request.animal.owner.id !== userId) {
+      throw new UnauthorizedError("You cannot modify this resource");
+    }
+
+    if (request.status !== AdoptionRequestStatus.PENDING) {
+      throw new ConflictError(
+        `You cannot modify the status of a request that is '${request.status}'`
+      );
+    }
+
+    request.status = AdoptionRequestStatus.REJECTED;
+    await this.adoptionsRepository.save(request);
+
+    return null;
+  }
+
   async acceptRequest(userId: string, requestId: string) {
     return await AppDataSource.transaction(async (manager) => {
       const request = await manager.findOne(AdoptionRequest, {
