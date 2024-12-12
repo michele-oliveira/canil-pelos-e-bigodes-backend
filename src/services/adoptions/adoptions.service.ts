@@ -6,6 +6,7 @@ import { AdoptionRequest } from "../../entities/adoptionRequest.entity";
 import ConflictError from "../../errors/ConflictError.error";
 import { NotFoundError, UnauthorizedError } from "routing-controllers";
 import { AdoptionRequestStatus } from "../../entities/enums/adoptionRequestStatus.enum";
+import { AppDataSource } from "../../config/database/data-source";
 
 export class AdoptionsService {
   private readonly adoptionsRepository: Repository<AdoptionRequest>;
@@ -66,11 +67,43 @@ export class AdoptionsService {
     }
 
     if (request.status !== AdoptionRequestStatus.PENDING) {
-      throw new ConflictError(`You cannot delete this request that is '${request.status}'`)
+      throw new ConflictError(
+        `You cannot delete this request that is '${request.status}'`
+      );
     }
 
     await this.adoptionsRepository.remove(request);
 
     return null;
+  }
+
+  async acceptRequest(userId: string, requestId: string) {
+    return await AppDataSource.transaction(async (manager) => {
+      const request = await manager.findOne(AdoptionRequest, {
+        where: { id: requestId },
+        relations: ["animal", "animal.owner", "intender"],
+      });
+      if (!request) {
+        throw new NotFoundError("Adoption request not found");
+      }
+
+      if (request.animal.owner.id !== userId) {
+        throw new UnauthorizedError("You cannot modify this resource");
+      }
+
+      if (request.status !== AdoptionRequestStatus.PENDING) {
+        throw new ConflictError(
+          `You cannot modify the status of a request that is '${request.status}'`
+        );
+      }
+
+      request.status = AdoptionRequestStatus.ACCEPTED;
+      request.animal.adoptedBy = request.intender;
+
+      await manager.save(AdoptionRequest, request);
+      await manager.save(Animal, request.animal);
+
+      return null;
+    });
   }
 }

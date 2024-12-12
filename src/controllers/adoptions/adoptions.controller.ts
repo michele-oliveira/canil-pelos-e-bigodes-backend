@@ -4,6 +4,7 @@ import {
   Delete,
   JsonController,
   Param,
+  Patch,
   Post,
 } from "routing-controllers";
 import { AdoptionsService } from "../../services/adoptions/adoptions.service";
@@ -40,5 +41,14 @@ export class AdoptionsController {
     @Param("request_id") requestId: string
   ) {
     return this.adoptionsService.deleteRequest(user.id, requestId);
+  }
+
+  @Patch("/:request_id/accept-request")
+  @Authorized()
+  acceptRequest(
+    @CurrentUser() user: User,
+    @Param("request_id") requestId: string
+  ) {
+    return this.adoptionsService.acceptRequest(user.id, requestId);
   }
 }
