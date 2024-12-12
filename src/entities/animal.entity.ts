@@ -5,6 +5,7 @@ import {
   ManyToMany,
   JoinTable,
   ManyToOne,
+  JoinColumn,
 } from "typeorm";
 import { User } from "./user.entity";
 import { Vaccine } from "./vaccine.entity";
@@ -49,8 +50,10 @@ export class Animal {
   image_2: string;
 
   @ManyToOne(() => User, (user) => user.ownedAnimals)
+  @JoinColumn({ name: "owner_id" })
   owner: User;
 
   @ManyToOne(() => User, (user) => user.adoptedAnimals, { nullable: true })
+  @JoinColumn({ name: "adopter_id" })
   adoptedBy: User | null;
 }

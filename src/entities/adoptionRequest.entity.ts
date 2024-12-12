@@ -4,6 +4,7 @@ import {
   ManyToOne,
   Column,
   UpdateDateColumn,
+  JoinColumn,
 } from "typeorm";
 import { Animal } from "./animal.entity";
 import { User } from "./user.entity";
@@ -15,9 +16,11 @@ export class AdoptionRequest {
   id: string;
 
   @ManyToOne(() => Animal)
+  @JoinColumn({ name: "animal_id" })
   animal: Animal;
 
   @ManyToOne(() => User)
+  @JoinColumn({ name: "intender_id" })
   intender: User;
 
   @Column({
@@ -27,9 +30,13 @@ export class AdoptionRequest {
   })
   status: AdoptionRequestStatus;
 
-  @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
+  @Column({
+    name: "created_at",
+    type: "timestamp",
+    default: () => "CURRENT_TIMESTAMP",
+  })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: "timestamp" })
+  @UpdateDateColumn({ name: "updated_at", type: "timestamp" })
   updatedAt: Date;
 }
