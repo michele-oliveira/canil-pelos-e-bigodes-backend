@@ -1,24 +1,23 @@
 import { Repository } from "typeorm";
+import { AppDataSource } from "../../config/database/data-source";
 import { User } from "../../entities/user.entity";
 import { Animal } from "../../entities/animal.entity";
 import { AdoptionRequest } from "../../entities/adoptionRequest.entity";
-// import { NewAdoptionRequestDTO } from "../../interfaces/dto";
-import ConflictError from "../../errors/ConflictError.error";
-import { NotFoundError, UnauthorizedError } from "routing-controllers";
 import { AdoptionRequestStatus } from "../../entities/enums/adoptionRequestStatus.enum";
-import { AppDataSource } from "../../config/database/data-source";
+import { NotFoundError, UnauthorizedError } from "routing-controllers";
+import ConflictError from "../../errors/ConflictError.error";
 
-export class AdoptionsService {
-  private readonly adoptionsRepository: Repository<AdoptionRequest>;
+export class AdoptionRequestsService {
+  private readonly adoptionRequestsRepository: Repository<AdoptionRequest>;
   private readonly animalsRepository: Repository<Animal>;
   private readonly usersRepository: Repository<User>;
 
   constructor(
-    adoptionsRepository: Repository<AdoptionRequest>,
+    adoptionRequestsRepository: Repository<AdoptionRequest>,
     animalsRepository: Repository<Animal>,
     usersRepository: Repository<User>
   ) {
-    this.adoptionsRepository = adoptionsRepository;
+    this.adoptionRequestsRepository = adoptionRequestsRepository;
     this.animalsRepository = animalsRepository;
     this.usersRepository = usersRepository;
   }
@@ -43,18 +42,18 @@ export class AdoptionsService {
       throw new NotFoundError("Intender not found");
     }
 
-    const adoptionRequest = this.adoptionsRepository.create({
+    const adoptionRequest = this.adoptionRequestsRepository.create({
       animal,
       intender,
     });
 
-    await this.adoptionsRepository.insert(adoptionRequest);
+    await this.adoptionRequestsRepository.insert(adoptionRequest);
 
     return adoptionRequest;
   }
 
   async deleteRequest(userId: string, requestId: string) {
-    const request = await this.adoptionsRepository.findOne({
+    const request = await this.adoptionRequestsRepository.findOne({
       where: { id: requestId },
       relations: ["animal", "animal.owner"],
     });
@@ -72,13 +71,13 @@ export class AdoptionsService {
       );
     }
 
-    await this.adoptionsRepository.remove(request);
+    await this.adoptionRequestsRepository.remove(request);
 
     return null;
   }
 
   async rejectRequest(userId: string, requestId: string) {
-    const request = await this.adoptionsRepository.findOne({
+    const request = await this.adoptionRequestsRepository.findOne({
       where: { id: requestId },
       relations: ["animal", "animal.owner"],
     });
@@ -97,7 +96,7 @@ export class AdoptionsService {
     }
 
     request.status = AdoptionRequestStatus.REJECTED;
-    await this.adoptionsRepository.save(request);
+    await this.adoptionRequestsRepository.save(request);
 
     return null;
   }

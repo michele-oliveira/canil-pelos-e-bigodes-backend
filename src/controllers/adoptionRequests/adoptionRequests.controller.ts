@@ -8,24 +8,25 @@ import {
   Patch,
   Post,
 } from "routing-controllers";
-import { AdoptionsService } from "../../services/adoptions/adoptions.service";
 import { AppDataSource } from "../../config/database/data-source";
 import { AdoptionRequest } from "../../entities/adoptionRequest.entity";
 import { Animal } from "../../entities/animal.entity";
 import { User } from "../../entities/user.entity";
-import { NewAdoptionRequest as NewAdoptionRequestBody } from "./adoptions.type";
+import { AdoptionRequestsService } from "../../services/adoptionRequests/adoptionRequests.service";
+import { NewAdoptionRequest as NewAdoptionRequestBody } from "./adoptionRequests.type";
 
-@JsonController("/adoptions")
-export class AdoptionsController {
-  private readonly adoptionsService: AdoptionsService;
+@JsonController("/adoption-requests")
+export class AdoptionRequestsController {
+  private readonly adoptionRequestsService: AdoptionRequestsService;
 
   constructor() {
-    const adoptionsRepository = AppDataSource.getRepository(AdoptionRequest);
+    const adoptionRequestsRepository =
+      AppDataSource.getRepository(AdoptionRequest);
     const animalsRepository = AppDataSource.getRepository(Animal);
     const usersRepository = AppDataSource.getRepository(User);
 
-    this.adoptionsService = new AdoptionsService(
-      adoptionsRepository,
+    this.adoptionRequestsService = new AdoptionRequestsService(
+      adoptionRequestsRepository,
       animalsRepository,
       usersRepository
     );
@@ -36,7 +37,7 @@ export class AdoptionsController {
     @CurrentUser() user: User,
     @Body({ validate: true }) body: NewAdoptionRequestBody
   ) {
-    return this.adoptionsService.newRequest(body.animal_id, user.id);
+    return this.adoptionRequestsService.newRequest(body.animal_id, user.id);
   }
 
   @Delete("/:request_id")
@@ -45,24 +46,24 @@ export class AdoptionsController {
     @CurrentUser() user: User,
     @Param("request_id") requestId: string
   ) {
-    return this.adoptionsService.deleteRequest(user.id, requestId);
+    return this.adoptionRequestsService.deleteRequest(user.id, requestId);
   }
 
-  @Patch("/:request_id/reject-request")
+  @Patch("/:request_id/reject")
   @Authorized()
   rejectRequest(
     @CurrentUser() user: User,
     @Param("request_id") requestId: string
   ) {
-    return this.adoptionsService.rejectRequest(user.id, requestId);
+    return this.adoptionRequestsService.rejectRequest(user.id, requestId);
   }
 
-  @Patch("/:request_id/accept-request")
+  @Patch("/:request_id/accept")
   @Authorized()
   acceptRequest(
     @CurrentUser() user: User,
     @Param("request_id") requestId: string
   ) {
-    return this.adoptionsService.acceptRequest(user.id, requestId);
+    return this.adoptionRequestsService.acceptRequest(user.id, requestId);
   }
 }
