@@ -66,3 +66,10 @@ export class ListAnimalsParams {
   @IsOptional()
   animalType?: AnimalType;
 }
+
+export class GetVaccinesParams {
+  @IsEnum(AnimalType, {
+    message: "type must be 'cat' or 'dog'",
+  })
+  type?: AnimalType;
+}

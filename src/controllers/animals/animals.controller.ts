@@ -22,6 +22,7 @@ import { AnimalsService } from "../../services/animals/animals.service";
 import { upload } from "../../config/storage/upload";
 import { FailedUploadsMiddleware } from "../../middlewares/failedUploads.middleware";
 import {
+  GetVaccinesParams,
   ListAnimalsParams,
   NewAnimal as NewAnimalBody,
   UpdateAnimal as UpdateAnimalBody,
@@ -113,5 +114,10 @@ export class AnimalsController {
     @Param("animal_id") animalId: string
   ) {
     return this.animalsService.deleteAnimal(user.id, animalId);
+  }
+
+  @Get("/vaccines")
+  getVaccines(@QueryParams() params: GetVaccinesParams) {
+    return this.animalsService.getVaccines(params.type);
   }
 }

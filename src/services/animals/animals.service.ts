@@ -125,6 +125,14 @@ export class AnimalsService {
     return null;
   }
 
+  async getVaccines(type?: AnimalType) {
+    const vaccines = await this.vaccinesRepository.find({
+      where: type ? { type } : undefined
+    });
+
+    return vaccines;
+  }
+
   private async validateAndFillAnimalDetails(
     userId: string,
     animalDetails: NewAnimalDTO | UpdateAnimalDTO
