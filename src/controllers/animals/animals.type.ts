@@ -14,6 +14,7 @@ import { AnimalType } from "../../entities/enums/animalType.enum";
 import { AnimalGender } from "../../entities/enums/animalGender.enum";
 import { IsPositiveIntegerString } from "../../common/validators/numbers";
 import { ANIMALS_PER_PAGE } from "../../common/constants/animalsControllerDefaultConfigs";
+import { IsAnimalType } from "../../common/validators/enums";
 
 export class NewAnimal {
   @IsString()
@@ -60,16 +61,13 @@ export class ListAnimalsParams {
   @Min(6)
   limit = ANIMALS_PER_PAGE;
 
-  @IsEnum(AnimalType, {
-    message: "animalType must be 'cat' or 'dog'",
-  })
+  @Validate(IsAnimalType)
   @IsOptional()
   animalType?: AnimalType;
 }
 
 export class GetVaccinesParams {
-  @IsEnum(AnimalType, {
-    message: "type must be 'cat' or 'dog'",
-  })
+  @Validate(IsAnimalType)
+  @IsOptional()
   type?: AnimalType;
 }
