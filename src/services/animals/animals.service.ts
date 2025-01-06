@@ -61,6 +61,18 @@ export class AnimalsService {
     };
   }
 
+  async getAnimal(animalId: string) {
+    const animal = await this.animalsRepository.findOne({
+      where: { id: animalId },
+      relations: ["vaccines", "owner", "adoptedBy"],
+    });
+    if (animal) {
+      return animal;
+    } else {
+      throw new NotFoundError("Animal not found");
+    }
+  }
+
   async newAnimal(userId: string, animal: NewAnimalDTO) {
     try {
       const newAnimal = await this.validateAndFillAnimalDetails(userId, animal);
@@ -127,7 +139,7 @@ export class AnimalsService {
 
   async getVaccines(type?: AnimalType) {
     const vaccines = await this.vaccinesRepository.find({
-      where: type ? { type } : undefined
+      where: type ? { type } : undefined,
     });
 
     return vaccines;

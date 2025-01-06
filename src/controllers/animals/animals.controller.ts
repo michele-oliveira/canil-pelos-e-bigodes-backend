@@ -48,11 +48,21 @@ export class AnimalsController {
     );
   }
 
+  @Get("/vaccines")
+  getVaccines(@QueryParams() params: GetVaccinesParams) {
+    return this.animalsService.getVaccines(params.type);
+  }
+
   @Get("")
   list(@QueryParams() params: ListAnimalsParams) {
     const { page, limit, animalType } = params;
 
     return this.animalsService.list(page, limit, animalType);
+  }
+
+  @Get("/:animal_id")
+  getAnimal(@Param("animal_id") animalId: string) {
+    return this.animalsService.getAnimal(animalId);
   }
 
   @Post("")
@@ -114,10 +124,5 @@ export class AnimalsController {
     @Param("animal_id") animalId: string
   ) {
     return this.animalsService.deleteAnimal(user.id, animalId);
-  }
-
-  @Get("/vaccines")
-  getVaccines(@QueryParams() params: GetVaccinesParams) {
-    return this.animalsService.getVaccines(params.type);
   }
 }
