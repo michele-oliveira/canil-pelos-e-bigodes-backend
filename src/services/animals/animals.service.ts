@@ -8,7 +8,12 @@ import {
 import { User } from "../../entities/user.entity";
 import { Animal } from "../../entities/animal.entity";
 import { Vaccine } from "../../entities/vaccine.entity";
-import { compareFiles, deleteFile, IMAGES_PATH } from "../../utils/files";
+import {
+  compareFiles,
+  deleteFile,
+  getPublicImageUrl,
+  IMAGES_PATH,
+} from "../../utils/files";
 import ConflictError from "../../errors/ConflictError.error";
 import {
   AnimalImageFilesDTO,
@@ -53,6 +58,10 @@ export class AnimalsService {
       skip,
       take: limit,
     });
+    animals.forEach((animal) => {
+      animal.image_1 = getPublicImageUrl(animal.image_1);
+      animal.image_2 = getPublicImageUrl(animal.image_2);
+    });
 
     return {
       animals,
@@ -67,19 +76,25 @@ export class AnimalsService {
       relations: ["vaccines", "owner", "adoptedBy"],
     });
     if (animal) {
+      animal.image_1 = getPublicImageUrl(animal.image_1);
+      animal.image_2 = getPublicImageUrl(animal.image_2);
       return animal;
     } else {
       throw new NotFoundError("Animal not found");
     }
   }
 
-  async newAnimal(userId: string, animal: NewAnimalDTO) {
+  async newAnimal(userId: string, animal: NewAnimalDTO): Promise<Animal> {
     try {
       const newAnimal = await this.validateAndFillAnimalDetails(userId, animal);
 
       await this.animalsRepository.insert(newAnimal);
 
-      return newAnimal;
+      return {
+        ...newAnimal,
+        image_1: getPublicImageUrl(newAnimal.image_1),
+        image_2: getPublicImageUrl(newAnimal.image_2),
+      };
     } catch (error) {
       this.deleteImages({
         image_1: animal.image_1,
@@ -90,7 +105,7 @@ export class AnimalsService {
     }
   }
 
-  async updateAnimal(userId: string, animal: UpdateAnimalDTO) {
+  async updateAnimal(userId: string, animal: UpdateAnimalDTO): Promise<Animal> {
     try {
       const existingAnimal = await this.validateAndFillAnimalDetails(
         userId,
@@ -99,7 +114,11 @@ export class AnimalsService {
 
       await this.animalsRepository.save(existingAnimal);
 
-      return existingAnimal;
+      return {
+        ...existingAnimal,
+        image_1: getPublicImageUrl(existingAnimal.image_1),
+        image_2: getPublicImageUrl(existingAnimal.image_2),
+      };
     } catch (error) {
       this.deleteImages({
         image_1: animal.image_1,
