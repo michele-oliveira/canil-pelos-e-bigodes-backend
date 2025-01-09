@@ -85,24 +85,36 @@ export class AnimalsService {
   }
 
   async newAnimal(userId: string, animal: NewAnimalDTO): Promise<Animal> {
-    try {
-      const newAnimal = await this.validateAndFillAnimalDetails(userId, animal);
+    return this.animalsRepository.manager.transaction(
+      async (transactionalEntityManager) => {
+        try {
+          const newAnimal = await this.validateAndFillAnimalDetails(
+            userId,
+            animal
+          );
 
-      await this.animalsRepository.insert(newAnimal);
+          await transactionalEntityManager.insert(Animal, newAnimal);
+          await transactionalEntityManager
+            .createQueryBuilder()
+            .relation(Animal, "vaccines")
+            .of(newAnimal)
+            .add(newAnimal.vaccines);
 
-      return {
-        ...newAnimal,
-        image_1: getPublicImageUrl(newAnimal.image_1),
-        image_2: getPublicImageUrl(newAnimal.image_2),
-      };
-    } catch (error) {
-      this.deleteImages({
-        image_1: animal.image_1,
-        image_2: animal.image_2,
-      });
+          return {
+            ...newAnimal,
+            image_1: getPublicImageUrl(newAnimal.image_1),
+            image_2: getPublicImageUrl(newAnimal.image_2),
+          };
+        } catch (error) {
+          this.deleteImages({
+            image_1: animal.image_1,
+            image_2: animal.image_2,
+          });
 
-      throw error;
-    }
+          throw error;
+        }
+      }
+    );
   }
 
   async updateAnimal(userId: string, animal: UpdateAnimalDTO): Promise<Animal> {
