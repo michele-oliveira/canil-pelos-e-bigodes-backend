@@ -239,7 +239,7 @@ export class AnimalsService {
     );
     if (invalidVaccineIds.length > 0) {
       throw new NotFoundError(
-        `One or more vaccines do not exist: ${invalidVaccineIds.join(", ")}`
+        `One or more vaccines were not found: ${invalidVaccineIds.join(", ")}`
       );
     }
 
