@@ -5,6 +5,7 @@ import {
   CurrentUser,
   Delete,
   Get,
+  HeaderParam,
   JsonController,
   Param,
   Post,
@@ -20,6 +21,7 @@ import { Animal } from "../../entities/animal.entity";
 import { Vaccine } from "../../entities/vaccine.entity";
 import { AnimalsService } from "../../services/animals/animals.service";
 import { upload } from "../../config/storage/upload";
+import { decodeJwt } from "../../utils/jwt";
 import { FailedUploadsMiddleware } from "../../middlewares/failedUploads.middleware";
 import {
   GetVaccinesParams,
@@ -54,10 +56,15 @@ export class AnimalsController {
   }
 
   @Get("")
-  list(@QueryParams() params: ListAnimalsParams) {
+  list(
+    @QueryParams() params: ListAnimalsParams,
+    @HeaderParam("Authorization") token: string
+  ) {
     const { page, limit, animalType } = params;
+    const userToken = token ? token.split(" ")[1] : undefined;
+    const userId = userToken ? decodeJwt(userToken).id : undefined;
 
-    return this.animalsService.list(page, limit, animalType);
+    return this.animalsService.list({ page, limit, animalType }, userId);
   }
 
   @Get("/:animal_id")

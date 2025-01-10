@@ -1,5 +1,5 @@
 import path from "path";
-import { In, Repository } from "typeorm";
+import { In, Not, Repository } from "typeorm";
 import {
   BadRequestError,
   NotFoundError,
@@ -38,9 +38,21 @@ export class AnimalsService {
     this.vaccinesRepository = vaccinesRepository;
   }
 
-  async list(page: number, limit: number, animalType?: AnimalType) {
+  async list(
+    filterOptions: { page: number; limit: number; animalType?: AnimalType },
+    userId?: string
+  ) {
+    const { page, limit, animalType } = filterOptions;
+
     if (limit <= 0 || page <= 0) {
       throw new BadRequestError("Invalid pagination params");
+    }
+
+    if (userId) {
+      const user = await this.usersRepository.findOneBy({ id: userId });
+      if (!user) {
+        throw new NotFoundError("User not found");
+      }
     }
 
     if (animalType && !Object.values(AnimalType).includes(animalType)) {
@@ -50,11 +62,13 @@ export class AnimalsService {
     const skip = (page - 1) * limit;
 
     const [animals, total] = await this.animalsRepository.findAndCount({
-      where: animalType
-        ? {
-            type: animalType,
-          }
-        : undefined,
+      relations: ["owner", "vaccines"],
+      where: {
+        type: animalType,
+        owner: {
+          id: userId ? Not(userId) : undefined,
+        },
+      },
       skip,
       take: limit,
     });
