@@ -31,6 +31,10 @@ export class AdoptionRequestsService {
       throw new NotFoundError("Animal not found");
     }
 
+    if (animal.adoptedBy) {
+      throw new ConflictError("This animal was already adopted");
+    }
+
     if (intenderId === animal.owner.id) {
       throw new ConflictError("Animal cannot be adopted by its owner");
     }
@@ -40,6 +44,23 @@ export class AdoptionRequestsService {
     });
     if (!intender) {
       throw new NotFoundError("Intender not found");
+    }
+
+    const existingAdoptionRequest =
+      await this.adoptionRequestsRepository.findOne({
+        relations: ["animal", "intender"],
+        where: {
+          status: AdoptionRequestStatus.PENDING,
+          animal: {
+            id: animalId,
+          },
+          intender: {
+            id: intenderId,
+          },
+        },
+      });
+    if (existingAdoptionRequest) {
+      throw new ConflictError("You already have a pending adoption request for this animal");
     }
 
     const adoptionRequest = this.adoptionRequestsRepository.create({
