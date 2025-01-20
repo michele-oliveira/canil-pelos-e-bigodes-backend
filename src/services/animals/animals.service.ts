@@ -1,5 +1,5 @@
 import path from "path";
-import { In, Not, Repository } from "typeorm";
+import { In, IsNull, Not, Repository } from "typeorm";
 import {
   BadRequestError,
   NotFoundError,
@@ -22,6 +22,7 @@ import {
 } from "../../interfaces/dto";
 import { AnimalImageNames } from "./animals.type";
 import { AnimalType } from "../../entities/enums/animalType.enum";
+import { AdoptionRequestStatus } from "../../entities/enums/adoptionRequestStatus.enum";
 
 export class AnimalsService {
   private readonly usersRepository: Repository<User>;
@@ -62,11 +63,23 @@ export class AnimalsService {
     const skip = (page - 1) * limit;
 
     const [animals, total] = await this.animalsRepository.findAndCount({
-      relations: ["owner", "vaccines"],
+      relations: [
+        "owner",
+        "vaccines",
+        "adoptionRequests",
+        "adoptionRequests.intender",
+      ],
       where: {
         type: animalType,
         owner: {
           id: userId ? Not(userId) : undefined,
+        },
+        adoptedBy: IsNull(),
+        adoptionRequests: {
+          status: AdoptionRequestStatus.PENDING,
+          intender: {
+            id: userId,
+          },
         },
       },
       skip,
