@@ -20,7 +20,7 @@ import {
   NewAnimalDTO,
   UpdateAnimalDTO,
 } from "../../interfaces/dto";
-import { AnimalImageNames } from "./animals.type";
+import { AnimalImageNames, FilterOptions } from "./animals.type";
 import { AnimalType } from "../../entities/enums/animalType.enum";
 import { AdoptionRequestStatus } from "../../entities/enums/adoptionRequestStatus.enum";
 
@@ -40,7 +40,7 @@ export class AnimalsService {
   }
 
   async list(
-    filterOptions: { page: number; limit: number; animalType?: AnimalType },
+    filterOptions: FilterOptions,
     userId?: string
   ) {
     const { page, limit, animalType } = filterOptions;
