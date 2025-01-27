@@ -3,17 +3,22 @@ import {
   Body,
   CurrentUser,
   Delete,
+  Get,
   JsonController,
   Param,
   Patch,
   Post,
+  QueryParams,
 } from "routing-controllers";
 import { AppDataSource } from "../../config/database/data-source";
 import { AdoptionRequest } from "../../entities/adoptionRequest.entity";
 import { Animal } from "../../entities/animal.entity";
 import { User } from "../../entities/user.entity";
 import { AdoptionRequestsService } from "../../services/adoptionRequests/adoptionRequests.service";
-import { NewAdoptionRequest as NewAdoptionRequestBody } from "./adoptionRequests.type";
+import {
+  ListParams,
+  NewAdoptionRequest as NewAdoptionRequestBody,
+} from "./adoptionRequests.type";
 
 @JsonController("/adoption-requests")
 export class AdoptionRequestsController {
@@ -30,6 +35,22 @@ export class AdoptionRequestsController {
       animalsRepository,
       usersRepository
     );
+  }
+
+  @Get("/")
+  @Authorized()
+  list(@CurrentUser() user: User, @QueryParams() filterOptions: ListParams) {
+    const { type, page, limit } = filterOptions;
+    if (!type) {
+      return this.adoptionRequestsService.list(user.id, { page, limit });
+    } else if (type === "made") {
+      return this.adoptionRequestsService.listMade(user.id, { page, limit });
+    } else {
+      return this.adoptionRequestsService.listReceived(user.id, {
+        page,
+        limit,
+      });
+    }
   }
 
   @Post("/")

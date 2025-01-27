@@ -1,0 +1,1 @@
+export const ADOPTION_REQUESTS_PER_PAGE = 8;

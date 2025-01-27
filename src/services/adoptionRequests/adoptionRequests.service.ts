@@ -6,6 +6,8 @@ import { AdoptionRequest } from "../../entities/adoptionRequest.entity";
 import { AdoptionRequestStatus } from "../../entities/enums/adoptionRequestStatus.enum";
 import { NotFoundError, UnauthorizedError } from "routing-controllers";
 import ConflictError from "../../errors/ConflictError.error";
+import { FilterOptions } from "./adoptionRequests.type";
+import { getPublicImageUrl } from "../../utils/files";
 
 export class AdoptionRequestsService {
   private readonly adoptionRequestsRepository: Repository<AdoptionRequest>;
@@ -20,6 +22,117 @@ export class AdoptionRequestsService {
     this.adoptionRequestsRepository = adoptionRequestsRepository;
     this.animalsRepository = animalsRepository;
     this.usersRepository = usersRepository;
+  }
+
+  async list(userId: string, filterOptions: FilterOptions) {
+    const { limit, page } = filterOptions;
+
+    const skip = (page - 1) * limit;
+
+    const [adoptionRequests, total] =
+      await this.adoptionRequestsRepository.findAndCount({
+        relations: ["animal", "animal.owner", "intender"],
+        order: {
+          createdAt: "DESC",
+        },
+        skip,
+        take: limit,
+      });
+
+    const adoptionRequestsWithType = adoptionRequests.map(
+      (adoptionRequest) => ({
+        ...adoptionRequest,
+        type: adoptionRequest.intender.id === userId ? "made" : "received",
+      })
+    );
+    adoptionRequestsWithType.forEach((adoptionRequest) => {
+      adoptionRequest.animal.image_1 = getPublicImageUrl(
+        adoptionRequest.animal.image_1
+      );
+      adoptionRequest.animal.image_2 = getPublicImageUrl(
+        adoptionRequest.animal.image_2
+      );
+    });
+
+    return {
+      adoptionRequests: adoptionRequestsWithType,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async listMade(userId: string, filterOptions: FilterOptions) {
+    const { limit, page } = filterOptions;
+
+    const skip = (page - 1) * limit;
+
+    const [adoptionRequests, total] =
+      await this.adoptionRequestsRepository.findAndCount({
+        relations: ["animal", "animal.owner", "intender"],
+        where: {
+          intender: {
+            id: userId,
+          },
+        },
+        order: {
+          createdAt: "DESC",
+        },
+        skip,
+        take: limit,
+      });
+
+    adoptionRequests.forEach((adoptionRequest) => {
+      adoptionRequest.animal.image_1 = getPublicImageUrl(
+        adoptionRequest.animal.image_1
+      );
+      adoptionRequest.animal.image_2 = getPublicImageUrl(
+        adoptionRequest.animal.image_2
+      );
+    });
+
+    return {
+      adoptionRequests,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async listReceived(userId: string, filterOptions: FilterOptions) {
+    const { limit, page } = filterOptions;
+
+    const skip = (page - 1) * limit;
+
+    const [adoptionRequests, total] =
+      await this.adoptionRequestsRepository.findAndCount({
+        relations: ["animal", "animal.owner", "intender"],
+        where: {
+          animal: {
+            owner: {
+              id: userId,
+            },
+          },
+        },
+        order: {
+          createdAt: "DESC",
+        },
+        skip,
+        take: limit,
+      });
+
+    adoptionRequests.forEach((adoptionRequest) => {
+      adoptionRequest.animal.image_1 = getPublicImageUrl(
+        adoptionRequest.animal.image_1
+      );
+      adoptionRequest.animal.image_2 = getPublicImageUrl(
+        adoptionRequest.animal.image_2
+      );
+    });
+
+    return {
+      adoptionRequests,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async newRequest(animalId: string, intenderId: string) {
@@ -60,7 +173,9 @@ export class AdoptionRequestsService {
         },
       });
     if (existingAdoptionRequest) {
-      throw new ConflictError("You already have a pending adoption request for this animal");
+      throw new ConflictError(
+        "You already have a pending adoption request for this animal"
+      );
     }
 
     const adoptionRequest = this.adoptionRequestsRepository.create({
