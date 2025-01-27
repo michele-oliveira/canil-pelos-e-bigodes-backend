@@ -54,6 +54,7 @@ export class AdoptionRequestsController {
   }
 
   @Post("/")
+  @Authorized()
   newRequest(
     @CurrentUser() user: User,
     @Body({ validate: true }) body: NewAdoptionRequestBody
