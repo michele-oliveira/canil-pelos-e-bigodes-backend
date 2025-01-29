@@ -8,6 +8,7 @@ import { deleteFile, IMAGES_PATH } from "../../utils/files";
 import TokenizedUser from "../../interfaces/tokenizedUser";
 import { NewUserDTO, UserImageFileDTO } from "../../interfaces/dto";
 import { UserCredentials } from "./users.type";
+import ConflictError from "../../errors/ConflictError.error";
 
 export class UsersService {
   private readonly usersRepository: Repository<User>;
@@ -18,6 +19,13 @@ export class UsersService {
 
   async createUser(user: NewUserDTO) {
     try {
+      const existingUser = await this.usersRepository.findOneBy({
+        email: user.email,
+      });
+      if (existingUser) {
+        throw new ConflictError("Email is already registered");
+      }
+
       const profilePicture = user.profile_picture?.[0];
 
       const newUser = this.usersRepository.create(user);
