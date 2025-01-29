@@ -1,8 +1,8 @@
 import { ValidationError } from "class-validator";
 import { NextFunction, Request, Response } from "express";
 import { ExpressErrorMiddlewareInterface } from "routing-controllers";
-import { AnimalImageFilesDTO } from "../interfaces/dto";
 import { deleteFile } from "../utils/files";
+import { MulterFilesObject } from "../interfaces/files";
 
 export class FailedUploadsMiddleware
   implements ExpressErrorMiddlewareInterface
@@ -13,7 +13,7 @@ export class FailedUploadsMiddleware
       error.errors?.[0] instanceof ValidationError
     ) {
       try {
-        const files = request.files as unknown as AnimalImageFilesDTO;
+        const files = request.files as unknown as MulterFilesObject;
         Object.values(files).forEach((file) => {
           deleteFile(file[0].path);
         });

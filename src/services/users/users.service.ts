@@ -1,10 +1,12 @@
+import path from "path";
 import { Repository } from "typeorm";
-import { sign } from "jsonwebtoken";
-import { User } from "../../entities/user.entity";
-import { genSalt, hash } from "bcrypt";
 import { UnauthorizedError } from "routing-controllers";
+import { sign } from "jsonwebtoken";
+import { genSalt, hash } from "bcrypt";
+import { User } from "../../entities/user.entity";
+import { deleteFile, IMAGES_PATH } from "../../utils/files";
 import TokenizedUser from "../../interfaces/tokenizedUser";
-import { NewUserDTO } from "../../interfaces/dto";
+import { NewUserDTO, UserImageFileDTO } from "../../interfaces/dto";
 import { UserCredentials } from "./users.type";
 
 export class UsersService {
@@ -15,10 +17,24 @@ export class UsersService {
   }
 
   async createUser(user: NewUserDTO) {
-    const newUser = this.usersRepository.create(user);
-    newUser.salt = await genSalt();
-    newUser.password = await hash(user.password, newUser.salt);
-    return this.usersRepository.insert(newUser);
+    try {
+      const profilePicture = user.profile_picture?.[0];
+
+      const newUser = this.usersRepository.create(user);
+      newUser.salt = await genSalt();
+      newUser.password = await hash(user.password, newUser.salt);
+      if (profilePicture) {
+        newUser.profilePicture = profilePicture.filename;
+      }
+
+      await this.usersRepository.insert(newUser);
+
+      return { id: newUser.id };
+    } catch (error) {
+      this.deleteImage(user.profile_picture);
+
+      throw error;
+    }
   }
 
   async login(credentials: UserCredentials) {
@@ -45,5 +61,15 @@ export class UsersService {
     return {
       accessToken: jwt,
     };
+  }
+
+  private deleteImage(image: UserImageFileDTO["profile_picture"]) {
+    try {
+      if (image?.[0]) {
+        deleteFile(path.join(IMAGES_PATH, image[0].filename));
+      }
+    } catch (error) {
+      console.error("Error during file deletion", error);
+    }
   }
 }

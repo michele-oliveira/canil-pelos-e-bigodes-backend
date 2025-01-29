@@ -6,7 +6,12 @@ export interface NewUserDTO {
   email: string;
   phone: string;
   password: string;
+  profile_picture?: Express.Multer.File[];
 }
+
+export type UserImageFileDTO = {
+  profile_picture?: Express.Multer.File[];
+};
 
 export interface NewAnimalDTO {
   name: string;

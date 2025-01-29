@@ -16,6 +16,9 @@ export class User {
   @Column()
   phone: string;
 
+  @Column({ name: "profile_picture", nullable: true, default: null })
+  profilePicture: string;
+
   @Column()
   @Exclude()
   password: string;
