@@ -13,7 +13,7 @@ const createVaccines = async () => {
     },
     {
       id: "0dca9e20-af51-4b7e-baa0-4cc1d0b1b944",
-      name: "Vacina quádrupla feline (V4)",
+      name: "Vacina quádrupla felina (V4)",
       type: AnimalType.CAT,
     },
     {
