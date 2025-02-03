@@ -19,6 +19,7 @@ import { AppDataSource } from "../../config/database/data-source";
 import { User } from "../../entities/user.entity";
 import { Animal } from "../../entities/animal.entity";
 import { Vaccine } from "../../entities/vaccine.entity";
+import { AdoptionRequest } from "../../entities/adoptionRequest.entity";
 import { AnimalsService } from "../../services/animals/animals.service";
 import { upload } from "../../config/storage/upload";
 import { decodeJwt } from "../../utils/jwt";
@@ -43,10 +44,13 @@ export class AnimalsController {
     const usersRepository = AppDataSource.getRepository(User);
     const animalsRepository = AppDataSource.getRepository(Animal);
     const vaccinesRepository = AppDataSource.getRepository(Vaccine);
+    const adoptionRequestsRepository =
+      AppDataSource.getRepository(AdoptionRequest);
     this.animalsService = new AnimalsService(
       usersRepository,
       animalsRepository,
-      vaccinesRepository
+      vaccinesRepository,
+      adoptionRequestsRepository
     );
   }
 

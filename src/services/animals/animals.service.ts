@@ -8,6 +8,7 @@ import {
 import { User } from "../../entities/user.entity";
 import { Animal } from "../../entities/animal.entity";
 import { Vaccine } from "../../entities/vaccine.entity";
+import { AdoptionRequest } from "../../entities/adoptionRequest.entity";
 import {
   compareFiles,
   deleteFile,
@@ -28,22 +29,23 @@ export class AnimalsService {
   private readonly usersRepository: Repository<User>;
   private readonly animalsRepository: Repository<Animal>;
   private readonly vaccinesRepository: Repository<Vaccine>;
+  private readonly adoptionRequestsRepository: Repository<AdoptionRequest>;
 
   constructor(
     usersRepository: Repository<User>,
     animalsRepository: Repository<Animal>,
-    vaccinesRepository: Repository<Vaccine>
+    vaccinesRepository: Repository<Vaccine>,
+    adoptionRequestsRepository: Repository<AdoptionRequest>
   ) {
     this.usersRepository = usersRepository;
     this.animalsRepository = animalsRepository;
     this.vaccinesRepository = vaccinesRepository;
+    this.adoptionRequestsRepository = adoptionRequestsRepository;
   }
 
-  async list(
-    filterOptions: FilterOptions,
-    userId?: string
-  ) {
+  async list(filterOptions: FilterOptions, userId?: string) {
     const { page, limit, animalType } = filterOptions;
+    let pendingAdoptionRequests: AdoptionRequest[] = [];
 
     if (limit <= 0 || page <= 0) {
       throw new BadRequestError("Invalid pagination params");
@@ -62,25 +64,34 @@ export class AnimalsService {
 
     const skip = (page - 1) * limit;
 
+    if (userId) {
+      pendingAdoptionRequests = await this.adoptionRequestsRepository.find({
+        relations: ["animal"],
+        where: {
+          intender: {
+            id: userId,
+          },
+          status: AdoptionRequestStatus.PENDING,
+        },
+      });
+    }
+    const pendingAdoptionRequestsIds = [
+      ...new Set(
+        pendingAdoptionRequests.map(
+          (pendingAdoptionRequest) => pendingAdoptionRequest.animal.id
+        )
+      ),
+    ];
+
     const [animals, total] = await this.animalsRepository.findAndCount({
-      relations: [
-        "owner",
-        "vaccines",
-        "adoptionRequests",
-        "adoptionRequests.intender",
-      ],
+      relations: ["owner", "vaccines"],
       where: {
+        id: Not(In(pendingAdoptionRequestsIds)),
         type: animalType,
         owner: {
           id: userId ? Not(userId) : undefined,
         },
         adoptedBy: IsNull(),
-        adoptionRequests: {
-          status: AdoptionRequestStatus.PENDING,
-          intender: {
-            id: userId,
-          },
-        },
       },
       skip,
       take: limit,

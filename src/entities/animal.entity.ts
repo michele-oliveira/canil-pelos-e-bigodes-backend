@@ -2,7 +2,6 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  OneToMany,
   ManyToOne,
   ManyToMany,
   JoinTable,
@@ -10,7 +9,6 @@ import {
 } from "typeorm";
 import { User } from "./user.entity";
 import { Vaccine } from "./vaccine.entity";
-import { AdoptionRequest } from "./adoptionRequest.entity";
 import { AnimalType } from "./enums/animalType.enum";
 import { AnimalGender } from "./enums/animalGender.enum";
 
@@ -58,7 +56,4 @@ export class Animal {
   @ManyToOne(() => User, (user) => user.adoptedAnimals, { nullable: true })
   @JoinColumn({ name: "adopter_id" })
   adoptedBy: User | null;
-
-  @OneToMany(() => AdoptionRequest, (adoptionRequest) => adoptionRequest.animal)
-  adoptionRequests: AdoptionRequest[];
 }
